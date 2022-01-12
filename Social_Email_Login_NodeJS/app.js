@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const flash = require('connect-flash');
 const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
+require('dotenv').config();
 
 
 
@@ -44,10 +45,10 @@ app.use( (req, res, next) => {
 })
 
 // add mongodb
-const dbConfig = require('./config/keys').MongoURI;
+const MONGODB_LOCAL_URI = process.env.MONGODB_LOCAL_URI;
 
 // connect to db
-mongoose.connect(dbConfig, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGODB_LOCAL_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then( () => console.log("MongoDB connected"))
         .catch( err => console.error(err) );
 
@@ -56,5 +57,5 @@ app.use('/', require('./routes/index'))
 app.use('/users', require('./routes/users'))
 
 // listen
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, console.log(`Server is live on port: ${PORT}`))
