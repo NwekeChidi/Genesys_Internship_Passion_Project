@@ -10,8 +10,9 @@ const app = express();
 
 // Get data from web using the url 
 //const url = "https://www.pinterest.com/ohjoy/clothing/";
-const url = "https://www.pinterest.com/aniya333/a-t-t-i-r-e/";
-let toDownload = "no";
+// const url = "https://www.pinterest.com/aniya333/a-t-t-i-r-e/";
+const url = "https://www.bridgeport.edu/";
+let toDownload = false;
 
 // catch unhandled Rejections
 process.on('unhandledRejection', err => {
@@ -49,6 +50,26 @@ puppeteer.launch()
                 // let imageUrls = [], idxS = [0, 3, 9, 15, 21];
                 // idxS.forEach(idx => imageUrls.push(imgUrls[idx]));
             } else {
+                $("img").each( (index, image) => {
+
+                    const img = $(image).attr('src');
+                    imgUrls.push(url+img);
+                })
+                if (toDownload){
+                    imgUrls.forEach(imgUrl => {
+                        const options = {
+                            dest : path.join(__dirname, "/../Web_Scrapper_NodeJS/scrapped_Imgaes/"),
+                            url  : imgUrl
+                        }
+                        // download image
+                        download.image(options).then(({ filename }) => {
+                            console.log('Image Saved to', filename)
+                        }).catch( (err) => {
+                            console.log(err);
+                        })
+                    })
+                }
+                console.log("img-tag",imgUrls);
             }
 
             // Download the images from the links
@@ -57,7 +78,6 @@ puppeteer.launch()
                 const options = {
                     dest : path.join(__dirname, "/../Web_Scrapper_NodeJS/scrapped_Images/")
                 }
-
                 const resolution = '474x'
                 // Select images to save.
                 options.url = imgUrl.indexOf(resolution) > -1 || imgUrl.indexOf('originals') > -1 ? imgUrl : 0;
