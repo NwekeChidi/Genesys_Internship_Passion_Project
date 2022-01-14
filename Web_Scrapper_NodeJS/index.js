@@ -49,6 +49,27 @@ puppeteer.launch()
                 // //uncomment line below
                 // let imageUrls = [], idxS = [0, 3, 9, 15, 21];
                 // idxS.forEach(idx => imageUrls.push(imgUrls[idx]));
+                // Download the images from the links
+                // change imgUrls below to imageUrl to test
+                if (toDownload){
+                    imgUrls.forEach(imgUrl => {
+                    const options = {
+                        dest : path.join(__dirname, "/../Web_Scrapper_NodeJS/scrapped_Images/")
+                    }
+                    const resolution = '474x'
+                    // Select images to save.
+                    options.url = imgUrl.indexOf(resolution) > -1 || imgUrl.indexOf('originals') > -1 ? imgUrl : 0;
+                    if (options.url !== 0){
+                        download.image(options)
+                            .then(({ filename }) => {
+                                console.log('Saved to', filename)
+                            })
+                            .catch( (err) => {
+                                console.error(err)
+                            })
+                        } 
+                    })
+                }
             } else {
                 $("img").each( (index, image) => {
 
@@ -71,26 +92,6 @@ puppeteer.launch()
                 }
                 console.log("img-tag",imgUrls);
             }
-
-            // Download the images from the links
-            // change imgUrls below to imageUrl to test
-            imgUrls.forEach(imgUrl => {
-                const options = {
-                    dest : path.join(__dirname, "/../Web_Scrapper_NodeJS/scrapped_Images/")
-                }
-                const resolution = '474x'
-                // Select images to save.
-                options.url = imgUrl.indexOf(resolution) > -1 || imgUrl.indexOf('originals') > -1 ? imgUrl : 0;
-                if (options.url !== 0 && toDownload === "yes"){
-                    download.image(options)
-                        .then(({ filename }) => {
-                            console.log('Saved to', filename)
-                        })
-                        .catch( (err) => {
-                            console.error(err)
-                        })
-                } 
-            })
         })
         .catch( (err) => {
             console.error(err)
