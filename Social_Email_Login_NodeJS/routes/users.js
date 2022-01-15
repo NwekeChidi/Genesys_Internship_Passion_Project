@@ -100,10 +100,23 @@ router.get('/logout', (req, res) => {
     res.redirect('/users/login');
 })
 
+// facebook
 router.get('/auth/facebook', passport.authenticate('facebook', { scope: "email" } ))
 router.get('/facebook/callback',
     (req, res, next) => {
         passport.authenticate('facebook', {
+            successRedirect : process.env.BASE_CLIENT_URL,
+            failureRedirect : '/users/register',
+            failureFlash: true
+        })(req, res, next);
+    }
+);
+
+// google
+router.get('/auth/google', passport.authenticate('google', { scope: ["profile", "email"] } ))
+router.get('/google/callback',
+    (req, res, next) => {
+        passport.authenticate('google', {
             successRedirect : process.env.BASE_CLIENT_URL,
             failureRedirect : '/users/register',
             failureFlash: true

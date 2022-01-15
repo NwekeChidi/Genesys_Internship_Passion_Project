@@ -1,6 +1,7 @@
 // dependencies
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -52,6 +53,35 @@ module.exports = function(passport) {
                     newUser.name = profile._json.name;
                     newUser.email = profile._json.email;
                     newUser.social_photo_url = profile._json.picture.data.url;
+                    [ newUser.social_provider, newUser.password ] = Array(2).fill(profile.provider);
+                    // save user
+                    newUser.save();
+                }
+            });
+        })
+    }))
+
+    // google login
+    passport.use(new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.CALLBACK_URL+"google/callback",
+        passReqToCallback: true
+    },
+    (request, accessToken, refreshToken, profile, done) => {
+        console.log(profile);
+        process.nextTick(() => {
+            User.findOne({ 'social_id' : profile.id }, (err, user) => {
+                if (err) return done(err);
+
+                if (user) {
+                    return done(null, user); 
+                } else {
+                    const newUser = new User();
+                    newUser.social_id = profile.id;
+                    newUser.name = profile._json.name;
+                    newUser.email = profile._json.email;
+                    newUser.social_photo_url = profile._json.picture;
                     [ newUser.social_provider, newUser.password ] = Array(2).fill(profile.provider);
                     // save user
                     newUser.save();
