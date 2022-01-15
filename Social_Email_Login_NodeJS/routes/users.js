@@ -124,4 +124,16 @@ router.get('/google/callback',
     }
 );
 
+// google
+router.get('/auth/linkedin', passport.authenticate('linkedin', { scope: ["r_emailaddress", "r_liteprofile"] } ))
+router.get('/linkedin/callback',
+    (req, res, next) => {
+        passport.authenticate('linkedin', {
+            successRedirect : process.env.BASE_CLIENT_URL,
+            failureRedirect : '/users/register',
+            failureFlash: true
+        })(req, res, next);
+    }
+);
+
 module.exports = router;

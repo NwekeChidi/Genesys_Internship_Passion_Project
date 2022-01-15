@@ -2,6 +2,7 @@
 const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const LinkedinStrategy = require('passport-linkedin-oauth2').Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -69,11 +70,37 @@ module.exports = function(passport) {
         passReqToCallback: true
     },
     (request, accessToken, refreshToken, profile, done) => {
-        console.log(profile);
         process.nextTick(() => {
             User.findOne({ 'social_id' : profile.id }, (err, user) => {
                 if (err) return done(err);
 
+                if (user) {
+                    return done(null, user); 
+                } else {
+                    const newUser = new User();
+                    newUser.social_id = profile.id;
+                    newUser.name = profile._json.name;
+                    newUser.email = profile._json.email;
+                    newUser.social_photo_url = profile._json.picture;
+                    [ newUser.social_provider, newUser.password ] = Array(2).fill(profile.provider);
+                    // save user
+                    newUser.save();
+                }
+            });
+        })
+    }))
+
+    // linkedin login
+    passport.use(new LinkedinStrategy({
+        clientID: process.env.LINKEDIN_CLIENT_ID,
+        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+        callbackURL: process.env.CALLBACK_URL+"linkedin/callback",
+        passReqToCallback: true
+    },
+    (token, tokenSecret, profile, done) => {
+        process.nextTick(() => {
+            User.findOne({ 'social_id' : profile.id }, (err, user) => {
+                if (err) return done(err);
                 if (user) {
                     return done(null, user); 
                 } else {
