@@ -136,4 +136,16 @@ router.get('/linkedin/callback',
     }
 );
 
+// instagram
+router.get('/auth/instagram', passport.authenticate('instagram', { scope: ["profile","email"] } ))
+router.get('/instagram/callback',
+    (req, res, next) => {
+        passport.authenticate('instagram', {
+            successRedirect : process.env.BASE_CLIENT_URL,
+            failureRedirect : '/users/register',
+            failureFlash: true
+        })(req, res, next);
+    }
+);
+
 module.exports = router;

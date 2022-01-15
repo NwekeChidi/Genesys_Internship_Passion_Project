@@ -3,6 +3,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const FacebookStrategy = require('passport-facebook').Strategy;
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const LinkedinStrategy = require('passport-linkedin-oauth2').Strategy;
+const InstagramStrategy = require('passport-instagram').Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
@@ -10,7 +11,7 @@ require('dotenv').config();
 // Load user model
 const User = require('../models/User');
 
-module.exports = function(passport) {
+module.exports = (passport) => {
     passport.use(
         new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
             // check user match
@@ -92,12 +93,13 @@ module.exports = function(passport) {
 
     // linkedin login
     passport.use(new LinkedinStrategy({
-        clientID: process.env.LINKEDIN_CLIENT_ID,
-        clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-        callbackURL: process.env.CALLBACK_URL+"linkedin/callback",
+        clientID: process.env.INSTAGRAM_APP_ID,
+        clientSecret: process.env.INSTAGRAM_APP_SECRET,
+        callbackURL: process.env.CALLBACK_URL+"instagram/callback",
         passReqToCallback: true
     },
     (token, tokenSecret, profile, done) => {
+        console.log(profile)
         process.nextTick(() => {
             User.findOne({ 'social_id' : profile.id }, (err, user) => {
                 if (err) return done(err);
@@ -109,6 +111,35 @@ module.exports = function(passport) {
                     newUser.name = profile._json.name;
                     newUser.email = profile._json.email;
                     newUser.social_photo_url = profile._json.picture;
+                    [ newUser.social_provider, newUser.password ] = Array(2).fill(profile.provider);
+                    // save user
+                    newUser.save();
+                }
+            });
+        })
+    }))
+
+    // instagram login
+    passport.use(new InstagramStrategy({
+        clientID        : process.env.FACEBOOK_APP_ID,
+        clientSecret    : process.env.FACEBOOK_APP_SECRET,
+        callbackURL     : process.env.CALLBACK_URL+"instagram/callback",
+        profileFields   : ['id', 'displayName', 'name', 'picture.type(large)','email']
+
+    },
+    (token, refreshToken, profile, done) => {
+        process.nextTick(() => {
+            User.findOne({ 'social_id' : profile.id }, (err, user) => {
+                if (err) return done(err);
+
+                if (user) {
+                    return done(null, user); 
+                } else {
+                    const newUser = new User();
+                    newUser.social_id = profile._json.id;
+                    newUser.name = profile._json.name;
+                    newUser.email = profile._json.email;
+                    newUser.social_photo_url = profile._json.picture.data.url;
                     [ newUser.social_provider, newUser.password ] = Array(2).fill(profile.provider);
                     // save user
                     newUser.save();
